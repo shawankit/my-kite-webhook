@@ -1,0 +1,54 @@
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pm2.log
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# PM2 files
+.pmx/
+.pm2/
+
+# Build outputs
+dist/
+build/
+tmp/
+
+# Nginx certificate files (if any)
+*.pem
+*.key
+*.crt
+
+# TypeScript outputs (if used)
+*.tsbuildinfo
+
+# Coverage output
+coverage/
+
+# IDE files
+.vscode/
+.idea/
+
+# Dependency folders
+bower_components/
+
+# Cache
+.cache/
+.nyc_output/
