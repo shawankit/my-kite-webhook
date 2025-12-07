@@ -86,30 +86,146 @@ app.get("/request-token", async (req, res) => {
     }
 });
 
+
+const LOT_SIZES = {
+    NIFTY: 25,
+    BANKNIFTY: 15,
+    FINNIFTY: 40,
+    MIDCPNIFTY: 75,
+    RELIANCE: 250,
+    TCS: 150,
+    HDFCBANK: 550,
+    ICICIBANK: 700,
+    SBIN: 1500,
+    INFY: 300,
+    AXISBANK: 300,
+    KOTAKBANK: 400,
+    LT: 150,
+  };
+
+
+// ---------------- DETECT EXCHANGE ----------------
+function detectExchange(symbol) {
+    if (symbol.endsWith("FUT")) return "NFO";
+    if (symbol.endsWith("CE")) return "NFO";
+    if (symbol.endsWith("PE")) return "NFO";
+    return "NSE"; // normal equity
+  }
+  
+  // ---------------- SYMBOL PARSER ----------------
+  function parseSymbol(symbol) {
+    // OPTIONS → BANKNIFTY24FEB43000CE
+    const optionRegex = /^([A-Z]+)(\d{2}[A-Z]{3})(\d+)(CE|PE)$/;
+    const opt = symbol.match(optionRegex);
+  
+    if (opt) {
+      const [, underlying, expiry, strike, type] = opt;
+      return {
+        type: "OPTION",
+        underlying,
+        expiry,
+        strike: Number(strike),
+        optionType: type,
+        tradingsymbol: `${underlying}${expiry}${strike}${type}`,
+        lotSize: LOT_SIZES[underlying] || 1,
+        exchange: detectExchange(type), // NFO
+      };
+    }
+  
+    // FUTURES → NIFTY24FEBFUT
+    const futureRegex = /^([A-Z]+)(\d{2}[A-Z]{3})FUT$/;
+    const fut = symbol.match(futureRegex);
+  
+    if (fut) {
+      const [, underlying, expiry] = fut;
+      return {
+        type: "FUTURE",
+        underlying,
+        expiry,
+        tradingsymbol: `${underlying}${expiry}FUT`,
+        lotSize: LOT_SIZES[underlying] || 1,
+        exchange: "NFO",
+      };
+    }
+  
+    // EQUITY → RELIANCE
+    return {
+      type: "EQUITY",
+      underlying: symbol,
+      tradingsymbol: symbol,
+      lotSize: 1,
+      exchange: "NSE",
+    };
+  }
+  
+  
+  // ---------------- PLACE ORDER ----------------
+  async function placeOrder(data) {
+    const orderParams = {
+        exchange: data.exchange,               // NSE or NFO
+        tradingsymbol: data.tradingsymbol,     // FUT or CE/PE or cash symbol
+        transaction_type: "BUY",
+        quantity: data.lotSize,
+        product: data.exchange === "NFO" ? "NRML" : "MIS",
+        order_type: "MARKET",
+        variety: "regular",
+    };
+    
+  
+    console.log("📌 Placing Order:", orderParams);
+  
+    try {
+      const order = await kc.placeOrder("regular", orderParams);
+      console.log("✅ Order Placed:", order);
+      return order;
+    } catch (err) {
+      console.error("❌ Order Error:", err.message);
+      logger.error("Webhook Order Error: " + err.message);
+    }
+  }
+  
+
 // ---------------- WEBHOOK ROUTE ----------------
 app.post("/webhook", async (req, res) => {
     logger.info("Webhook payload: " + JSON.stringify(req.body));
 
     try {
-        const kc = getKiteInstance();
+        //const kc = getKiteInstance();
 
-        const symbol = req.body.stocks?.split(",")[0];
-        const tradingSymbol = symbol.toUpperCase();
+        // const symbol = req.body.stocks?.split(",")[0];
+        // const tradingSymbol = symbol.toUpperCase();
 
-        logger.info(`Placing BUY order for ${tradingSymbol}`);
+        // logger.info(`Placing BUY order for ${tradingSymbol}`);
 
-        const order = await kc.placeOrder("regular", {
-            exchange: "NSE",
-            tradingsymbol: tradingSymbol,
-            transaction_type: "BUY",
-            quantity: 1,
-            product: "MIS",
-            order_type: "MARKET"
-        });
+        // const order = await kc.placeOrder("regular", {
+        //     exchange: "NSE",
+        //     tradingsymbol: tradingSymbol,
+        //     transaction_type: "BUY",
+        //     quantity: 1,
+        //     product: "MIS",
+        //     order_type: "MARKET"
+        // });
 
+        const symbol = req.body?.stocks?.split(",")[0];
+
+        if (!symbol) return res.json({ error: "No symbol found" });
+    
+        const parsed = parseSymbol(symbol);
+        if (!parsed) return res.json({ error: "Invalid symbol format" });
+    
+        console.log("Parsed:", parsed);
+    
+        const order = await placeOrder(parsed);
+        
         logger.info("Order Placed: " + JSON.stringify(order));
 
-        res.json({ status: "success", order });
+        res.json({
+          status: "ok",
+          parsed,
+          order,
+        });
+        
+        //res.json({ status: "success", order });
 
     } catch (err) {
         logger.error("Webhook Order Error: " + err.message);
