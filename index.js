@@ -41,6 +41,52 @@ function getKiteInstance() {
     return kc;
 }
 
+
+app.get("/", (req, res) => {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Server Status</title>
+          <style>
+            body {
+              font-family: Arial;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              height: 100vh;
+              margin: 0;
+              background: #f0f0f0;
+            }
+            h1 {
+              color: #333;
+            }
+            .btn {
+              padding: 10px 20px;
+              background: #007bff;
+              color: white;
+              border: none;
+              border-radius: 5px;
+              text-decoration: none;
+              cursor: pointer;
+              font-size: 16px;
+            }
+            .btn:hover {
+              background: #0056b3;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Server Working 🚀</h1>
+          <a href="/login" class="btn">Login</a>
+        </body>
+      </html>
+    `;
+    res.send(html);
+  });
+  
+
 // ---------------- LOGIN ROUTE ----------------
 app.get("/login", (req, res) => {
     try {
