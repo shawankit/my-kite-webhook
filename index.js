@@ -406,7 +406,12 @@ async function placeOrder(symbolInfo, signal) {
     }
   }
   
-  
+  function detectSignal(text) {
+    const t = text.toLowerCase();
+    if (t.includes("short") || t.includes("sell")) return "SELL";
+    if (t.includes("long") || t.includes("buy")) return "BUY";
+    return "UNKNOWN";
+  }
 
 // ---------------- WEBHOOK ROUTE ----------------
 app.post("/webhook", async (req, res) => {
@@ -421,8 +426,9 @@ app.post("/webhook", async (req, res) => {
         if (!parsed) return res.json({ error: "Invalid symbol format" });
     
         console.log("Parsed:", parsed);
-    
-        const order = await placeOrder(parsed);
+
+        const signal = detectSignal(req.body?.scan_name || req.body?.alert_name);
+        const order = await placeOrder(parsed, signal);
         
         logger.info("Order Placed: " + JSON.stringify(order));
 
