@@ -388,6 +388,18 @@ function detectExchange(symbol) {
       exchange: "NFO",
     };
   }
+
+  async function getLotSize(kc, symbol) {
+    const instruments = await kc.getInstruments();
+    
+    const fut = instruments.find(i =>
+        i.segment === "NFO-FUT" &&
+        i.instrument_type === "FUT" &&
+        i.tradingsymbol.startsWith(symbol.toUpperCase())
+    );
+
+    return fut ? fut.lot_size : 1;
+}
   
   
   // ---------------- PLACE ORDER ----------------
@@ -395,20 +407,30 @@ function detectExchange(symbol) {
 async function placeOrder(symbolInfo, signal) {
     const isFNO = symbolInfo.exchange === "NFO";
   
-    const orderParams = {
-        exchange: symbolInfo.exchange,              // NSE or NFO
-        tradingsymbol: symbolInfo.tradingsymbol,    // FUT or CE/PE or Equity
-        transaction_type: signal.toUpperCase() === "SELL" ? "SELL" : "BUY",
-        quantity: symbolInfo.lotSize,               // Correct lot size
-        product: isFNO ? "NRML" : "MIS",            // FNO = NRML, Equity = MIS
-        order_type: "MARKET",
-        variety: "regular",
-    };
+    // const orderParams = {
+    //     exchange: symbolInfo.exchange,              // NSE or NFO
+    //     tradingsymbol: symbolInfo.tradingsymbol,    // FUT or CE/PE or Equity
+    //     transaction_type: signal.toUpperCase() === "SELL" ? "SELL" : "BUY",
+    //     quantity: symbolInfo.lotSize,               // Correct lot size
+    //     product: isFNO ? "NRML" : "MIS",            // FNO = NRML, Equity = MIS
+    //     order_type: "MARKET",
+    //     variety: "regular",
+    // };
   
     console.log("📌 Placing Order:", orderParams);
   
     try {
       const kc = getKiteInstance();
+      const ls = await getLotSize(kc, symbolInfo.underlying);
+      const orderParams = {
+        exchange: symbolInfo.exchange,              // NSE or NFO
+        tradingsymbol: symbolInfo.tradingsymbol,    // FUT or CE/PE or Equity
+        transaction_type: signal.toUpperCase() === "SELL" ? "SELL" : "BUY",
+        quantity: ls,               // Correct lot size
+        product: isFNO ? "NRML" : "MIS",            // FNO = NRML, Equity = MIS
+        order_type: "MARKET",
+        variety: "regular",
+    };
       const order = await kc.placeOrder("regular", orderParams);
   
       console.log("✅ Order Placed:", order);
@@ -426,6 +448,9 @@ async function placeOrder(symbolInfo, signal) {
     return "UNKNOWN";
   }
 
+ 
+
+
 // ---------------- WEBHOOK ROUTE ----------------
 app.post("/webhook", async (req, res) => {
     logger.info("Webhook payload: " + JSON.stringify(req.body));
@@ -439,6 +464,7 @@ app.post("/webhook", async (req, res) => {
         if (!parsed) return res.json({ error: "Invalid symbol format" });
 
         const signal = detectSignal(req.body?.scan_name || req.body?.alert_name);
+        
         const order = await placeOrder(parsed, signal);
         
         logger.info("Order Placed: " + JSON.stringify(order));
