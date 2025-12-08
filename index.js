@@ -406,18 +406,7 @@ function detectExchange(symbol) {
   // ---------------- PLACE ORDER ----------------
 async function placeOrder(symbolInfo, signal) {
     const isFNO = symbolInfo.exchange === "NFO";
-  
-    // const orderParams = {
-    //     exchange: symbolInfo.exchange,              // NSE or NFO
-    //     tradingsymbol: symbolInfo.tradingsymbol,    // FUT or CE/PE or Equity
-    //     transaction_type: signal.toUpperCase() === "SELL" ? "SELL" : "BUY",
-    //     quantity: symbolInfo.lotSize,               // Correct lot size
-    //     product: isFNO ? "NRML" : "MIS",            // FNO = NRML, Equity = MIS
-    //     order_type: "MARKET",
-    //     variety: "regular",
-    // };
-  
-    console.log("📌 Placing Order:", orderParams);
+
   
     try {
       const kc = getKiteInstance();
@@ -436,6 +425,7 @@ async function placeOrder(symbolInfo, signal) {
       console.log("✅ Order Placed:", order);
       return order;
     } catch (err) {
+
       console.error("❌ Order Error:", err.message);
       logger.error("Webhook Order Error: " + err.message);
     }
