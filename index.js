@@ -134,20 +134,193 @@ app.get("/request-token", async (req, res) => {
 
 
 const LOT_SIZES = {
-    NIFTY: 25,
-    BANKNIFTY: 15,
-    FINNIFTY: 40,
-    MIDCPNIFTY: 75,
-    RELIANCE: 250,
-    TCS: 150,
+    APOLLOTYRE: 1700,
+    ASTRAL: 367,
+    ABFRL: 2600,
+    ALKEM: 200,
+    AARTIIND: 1000,
+    ABB: 250,
+    BEL: 5700,
+    AUBANK: 1000,
+    AXISBANK: 625,
+    BAJFINANCE: 125,
+    BALKRISIND: 300,
+    BATAINDIA: 375,
+    BERGEPAINT: 1100,
+    ASHOKLEY: 5000,
+    ABBOTINDIA: 40,
+    ABCAPITAL: 5400,
+    COFORGE: 150,
+    CUMMINSIND: 600,
+    ASIANPAINT: 200,
+    ADANIENT: 300,
+    ADANIPORTS: 800,
+    "BAJAJ-AUTO": 250,
+    DIVISLAB: 200,
+    AMBUJACEM: 1800,
+    DIXON: 200,
+    APOLLOHOSP: 125,
+    EICHERMOT: 175,
+    GODREJCP: 1000,
+    GRASIM: 475,
+    GUJGASLTD: 1250,
+    ATUL: 75,
+    HCLTECH: 700,
+    HDFCLIFE: 1100,
+    BALRAMCHIN: 1600,
+    BANDHANBNK: 2500,
+    BHARATFORG: 1000,
+    IDFC: 10000,
+    BHARTIARTL: 950,
+    BHEL: 10500,
+    BOSCHLTD: 50,
+    BPCL: 1800,
+    BRITANNIA: 200,
+    BSOFT: 2000,
+    IDFCFIRSTB: 15000,
+    CANFINHOME: 975,
+    INDHOTEL: 2000,
+    CHOLAFIN: 1250,
+    COLPAL: 350,
+    COROMANDEL: 700,
+    CROMPTON: 1800,
+    DABUR: 1250,
+    DALBHARAT: 500,
+    INDIGO: 300,
+    DEEPAKNTR: 300,
+    DELTACORP: 2800,
+    BANKBARODA: 5850,
+    DLF: 1650,
+    INFY: 400,
+    DRREDDY: 125,
+    ESCORTS: 275,
+    MARUTI: 100,
+    FEDERALBNK: 5000,
+    MCDOWELL_N: 700,
+    GAIL: 9150,
+    MFSL: 800,
+    GLENMARK: 1450,
+    GMRINFRA: 22500,
+    GNFC: 1300,
+    NATIONALUM: 7500,
+    HAL: 300,
+    HAVELLS: 500,
     HDFCBANK: 550,
-    ICICIBANK: 700,
-    SBIN: 1500,
-    INFY: 300,
-    AXISBANK: 300,
+    NAUKRI: 150,
+    HEROMOTOCO: 300,
+    HINDALCO: 1400,
+    HINDCOPPER: 5300,
+    HINDPETRO: 2700,
+    IBULHSGFIN: 5100,
+    ICICIGI: 500,
+    ICICIPRULI: 1500,
+    IEX: 3750,
+    IGL: 1375,
+    INDIACEM: 2900,
+    INDIAMART: 300,
+    INDUSTOWER: 3400,
+    INTELLECT: 1300,
+    IOC: 9750,
+    IPCALAB: 650,
+    IRCTC: 875,
+    OFSS: 200,
+    PAGEIND: 15,
+    JKCEMENT: 250,
+    PERSISTENT: 175,
+    PIIND: 250,
     KOTAKBANK: 400,
-    LT: 150,
+    SBICARD: 800,
+    SBILIFE: 750,
+    LTFH: 8924,
+    LALPATHLAB: 300,
+    LAURUSLABS: 1700,
+    LICHSGFIN: 2000,
+    LT: 300,
+    LTIM: 150,
+    LTTS: 200,
+    AUROPHARMA: 1100,
+    LUPIN: 850,
+    M_M: 700,
+    M_MFIN: 4000,
+    MARICO: 1200,
+    METROPOLIS: 400,
+    BAJAJFINSV: 500,
+    CIPLA: 650,
+    MRF: 10,
+    EXIDEIND: 3600,
+    MUTHOOTFIN: 550,
+    NAVINFLUOR: 150,
+    TCS: 175,
+    TECHM: 600,
+    TRENT: 400,
+    TVSMOTOR: 700,
+    BIOCON: 2500,
+    NESTLEIND: 40,
+    WIPRO: 1500,
+    NTPC: 3000,
+    OBEROIRLTY: 700,
+    ONGC: 3850,
+    CUB: 5000,
+    CHAMBLFERT: 1900,
+    PETRONET: 3000,
+    PIDILITIND: 250,
+    PNB: 16000,
+    GRANULES: 2000,
+    POWERGRID: 2700,
+    RAMCOCEM: 850,
+    RBLBANK: 5000,
+    HDFCAMC: 300,
+    RECLTD: 8000,
+    RELIANCE: 250,
+    SAIL: 8000,
+    SBIN: 1500,
+    SHREECEM: 25,
+    SHRIRAMFIN: 600,
+    SRF: 375,
+    SUNPHARMA: 700,
+    COALINDIA: 4200,
+    SYNGENE: 1000,
+    HINDUNILVR: 300,
+    TATACHEM: 550,
+    TATACOMM: 500,
+    TATACONSUM: 900,
+    ICICIBANK: 700,
+    TATAMOTORS: 1425,
+    TATAPOWER: 3375,
+    INDUSINDBK: 500,
+    TITAN: 375,
+    TORNTPHARM: 500,
+    UBL: 400,
+    ULTRACEMCO: 100,
+    UPL: 1300,
+    VOLTAS: 600,
+    JUBLFOOD: 1250,
+    ZEEL: 3000,
+    ZYDUSLIFE: 1800,
+    MANAPPURAM: 6000,
+    ACC: 300,
+    VEDL: 2000,
+    JINDALSTEL: 1250,
+    JSWSTEEL: 1350,
+    CONCOR: 1000,
+    NMDC: 4500,
+    POLYCAB: 300,
+    SIEMENS: 275,
+    CANBK: 2700,
+    MCX: 400,
+    MGL: 800,
+    MOTHERSON: 7100,
+    ITC: 1600,
+    PVRINOX: 407,
+    SUNTV: 1500,
+    PEL: 750,
+    PFC: 6200,
+    TATASTEEL: 5500,
+    GODREJPROP: 475,
+    IDEA: 80000,
+    MPHASIS: 275
   };
+  
 
 
 // ---------------- DETECT EXCHANGE ----------------
@@ -161,67 +334,70 @@ function detectExchange(symbol) {
   // ---------------- SYMBOL PARSER ----------------
   function parseSymbol(symbol) {
     // OPTIONS → BANKNIFTY24FEB43000CE
-    const optionRegex = /^([A-Z]+)(\d{2}[A-Z]{3})(\d+)(CE|PE)$/;
-    const opt = symbol.match(optionRegex);
+    // const optionRegex = /^([A-Z]+)(\d{2}[A-Z]{3})(\d+)(CE|PE)$/;
+    // const opt = symbol.match(optionRegex);
   
-    if (opt) {
-      const [, underlying, expiry, strike, type] = opt;
-      return {
-        type: "OPTION",
-        underlying,
-        expiry,
-        strike: Number(strike),
-        optionType: type,
-        tradingsymbol: `${underlying}${expiry}${strike}${type}`,
-        lotSize: LOT_SIZES[underlying] || 1,
-        exchange: detectExchange(type), // NFO
-      };
-    }
+    // if (opt) {
+    //   const [, underlying, expiry, strike, type] = opt;
+    //   return {
+    //     type: "OPTION",
+    //     underlying,
+    //     expiry,
+    //     strike: Number(strike),
+    //     optionType: type,
+    //     tradingsymbol: `${underlying}${expiry}${strike}${type}`,
+    //     lotSize: LOT_SIZES[underlying] || 1,
+    //     exchange: detectExchange(type), // NFO
+    //   };
+    // }
   
-    // FUTURES → NIFTY24FEBFUT
-    const futureRegex = /^([A-Z]+)(\d{2}[A-Z]{3})FUT$/;
-    const fut = symbol.match(futureRegex);
+    // // FUTURES → NIFTY24FEBFUT
+    // const futureRegex = /^([A-Z]+)(\d{2}[A-Z]{3})FUT$/;
+    // const fut = symbol.match(futureRegex);
   
-    if (fut) {
-      const [, underlying, expiry] = fut;
-      return {
-        type: "FUTURE",
-        underlying,
-        expiry,
-        tradingsymbol: `${underlying}${expiry}FUT`,
-        lotSize: LOT_SIZES[underlying] || 1,
-        exchange: "NFO",
-      };
-    }
+    // if (fut) {
+    //   const [, underlying, expiry] = fut;
+    //   return {
+    //     type: "FUTURE",
+    //     underlying,
+    //     expiry,
+    //     tradingsymbol: `${underlying}${expiry}FUT`,
+    //     lotSize: LOT_SIZES[underlying] || 1,
+    //     exchange: "NFO",
+    //   };
+    // }
   
     // EQUITY → RELIANCE
     return {
       type: "EQUITY",
       underlying: symbol,
       tradingsymbol: symbol,
-      lotSize: 1,
+      lotSize: LOT_SIZES[symbol] || 1,
       exchange: "NSE",
     };
   }
   
   
   // ---------------- PLACE ORDER ----------------
-  async function placeOrder(data) {
+  // ---------------- PLACE ORDER ----------------
+async function placeOrder(symbolInfo, signal) {
+    const isFNO = symbolInfo.exchange === "NFO";
+  
     const orderParams = {
-        exchange: data.exchange,               // NSE or NFO
-        tradingsymbol: data.tradingsymbol,     // FUT or CE/PE or cash symbol
-        transaction_type: "BUY",
-        quantity: data.lotSize,
-        product: data.exchange === "NFO" ? "NRML" : "MIS",
-        order_type: "MARKET",
-        variety: "regular",
+        exchange: "NSE",
+        tradingsymbol: symbolInfo.tradingsymbol,
+        transaction_type: signal.toUpperCase(),
+        quantity: symbolInfo.lotSize,
+        product:  "NRML",
+        order_type: "MARKET"    // F or LIMIT
     };
-    
   
     console.log("📌 Placing Order:", orderParams);
   
     try {
+      const kc = getKiteInstance();
       const order = await kc.placeOrder("regular", orderParams);
+  
       console.log("✅ Order Placed:", order);
       return order;
     } catch (err) {
@@ -230,28 +406,13 @@ function detectExchange(symbol) {
     }
   }
   
+  
 
 // ---------------- WEBHOOK ROUTE ----------------
 app.post("/webhook", async (req, res) => {
     logger.info("Webhook payload: " + JSON.stringify(req.body));
 
     try {
-        //const kc = getKiteInstance();
-
-        // const symbol = req.body.stocks?.split(",")[0];
-        // const tradingSymbol = symbol.toUpperCase();
-
-        // logger.info(`Placing BUY order for ${tradingSymbol}`);
-
-        // const order = await kc.placeOrder("regular", {
-        //     exchange: "NSE",
-        //     tradingsymbol: tradingSymbol,
-        //     transaction_type: "BUY",
-        //     quantity: 1,
-        //     product: "MIS",
-        //     order_type: "MARKET"
-        // });
-
         const symbol = req.body?.stocks?.split(",")[0];
 
         if (!symbol) return res.json({ error: "No symbol found" });
@@ -270,8 +431,6 @@ app.post("/webhook", async (req, res) => {
           parsed,
           order,
         });
-        
-        //res.json({ status: "success", order });
 
     } catch (err) {
         logger.error("Webhook Order Error: " + err.message);
