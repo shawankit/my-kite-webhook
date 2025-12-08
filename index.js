@@ -5,6 +5,7 @@ const fs = require("fs");
 const { KiteConnect } = require("kiteconnect");
 const logger = require("./logger");
 const { getHoldingsHTML } = require("./portfolio");
+const moment = require("moment");
 
 const app = express();
 app.use(bodyParser.json());
@@ -330,12 +331,23 @@ function detectExchange(symbol) {
     if (symbol.endsWith("PE")) return "NFO";
     return "NSE"; // normal equity
   }
+
+  function generateFuturesSymbol(underlyingSymbol) {
+    // Get the current date using moment
+    const now = moment();
+    const yearPart = now.format('YY');
+    const monthPart = now.format('MMM').toUpperCase();
+    const contractType = 'FUT';
+    const tradingSymbol = `${underlyingSymbol}${yearPart}${monthPart}${contractType}`;
+
+    return tradingSymbol;
+}
   
   // ---------------- SYMBOL PARSER ----------------
   function parseSymbol(symbol) {
     // OPTIONS → BANKNIFTY24FEB43000CE
-    // const optionRegex = /^([A-Z]+)(\d{2}[A-Z]{3})(\d+)(CE|PE)$/;
-    // const opt = symbol.match(optionRegex);
+    const optionRegex = /^([A-Z]+)(\d{2}[A-Z]{3})(\d+)(CE|PE)$/;
+    const opt = symbol.match(optionRegex);
   
     // if (opt) {
     //   const [, underlying, expiry, strike, type] = opt;
@@ -369,11 +381,11 @@ function detectExchange(symbol) {
   
     // EQUITY → RELIANCE
     return {
-      type: "EQUITY",
+      type: "FUTURE",
       underlying: symbol,
-      tradingsymbol: symbol,
+      tradingsymbol: generateFuturesSymbol(symbol),
       lotSize: LOT_SIZES[symbol] || 1,
-      exchange: "NSE",
+      exchange: "NFO",
     };
   }
   
@@ -384,12 +396,13 @@ async function placeOrder(symbolInfo, signal) {
     const isFNO = symbolInfo.exchange === "NFO";
   
     const orderParams = {
-        exchange: "NSE",
-        tradingsymbol: symbolInfo.tradingsymbol,
-        transaction_type: signal.toUpperCase(),
-        quantity: symbolInfo.lotSize,
-        product:  "NRML",
-        order_type: "MARKET"    // F or LIMIT
+        exchange: symbolInfo.exchange,              // NSE or NFO
+        tradingsymbol: symbolInfo.tradingsymbol,    // FUT or CE/PE or Equity
+        transaction_type: signal.toUpperCase() === "SELL" ? "SELL" : "BUY",
+        quantity: symbolInfo.lotSize,               // Correct lot size
+        product: isFNO ? "NRML" : "MIS",            // FNO = NRML, Equity = MIS
+        order_type: "MARKET",
+        variety: "regular",
     };
   
     console.log("📌 Placing Order:", orderParams);
@@ -424,8 +437,6 @@ app.post("/webhook", async (req, res) => {
     
         const parsed = parseSymbol(symbol);
         if (!parsed) return res.json({ error: "Invalid symbol format" });
-    
-        console.log("Parsed:", parsed);
 
         const signal = detectSignal(req.body?.scan_name || req.body?.alert_name);
         const order = await placeOrder(parsed, signal);
