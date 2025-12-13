@@ -6,6 +6,8 @@ const { KiteConnect } = require("kiteconnect");
 const logger = require("./logger");
 const { getHoldingsHTML } = require("./portfolio");
 const moment = require("moment");
+const { getOrdersHTML } = require("./orders");
+const { getPositionsHTML } = require("./positions");
 
 const app = express();
 app.use(bodyParser.json());
@@ -14,10 +16,19 @@ app.use(bodyParser.json());
 global.requestToken = null;
 global.kiteAccessToken = null;
 
+// ---------------- MEMORY STORE ANKIT ----------------
+global.requestTokenAnkit = null;
+global.kiteAccessTokenAnkit = null;
+
 
 // Load access_token from file (optional)
 if (fs.existsSync("access_token.txt")) {
     global.kiteAccessToken = fs.readFileSync("access_token.txt", "utf8").trim();
+    logger.info("Loaded access_token from file");
+}
+
+if (fs.existsSync("access_token_ankit.txt")) {
+    global.kiteAccessTokenAnkit = fs.readFileSync("access_token_ankit.txt", "utf8").trim();
     logger.info("Loaded access_token from file");
 }
 
@@ -39,6 +50,20 @@ function getKiteInstance() {
     });
 
     kc.setAccessToken(global.kiteAccessToken);
+    return kc;
+}
+
+function getKiteInstanceAnkit() {
+    if (!global.kiteAccessTokenAnkit) {
+        logger.error("Access token missing");
+        throw new Error("Access Token not set");
+    }
+
+    const kc = new KiteConnect({
+        api_key: process.env.KITE_API_KEY_ANKIT
+    });
+
+    kc.setAccessToken(global.kiteAccessTokenAnkit);
     return kc;
 }
 
@@ -101,6 +126,18 @@ app.get("/login", (req, res) => {
     }
 });
 
+app.get("/login-ankit", (req, res) => {
+    try {
+        const kc = new KiteConnect({ api_key: process.env.KITE_API_KEY_ANKIT });
+        const loginURL = kc.getLoginURL();
+        logger.info("Generated Kite login URL");
+        res.redirect(loginURL);
+    } catch (err) {
+        logger.error("Login URL error: " + err.message);
+        res.status(500).send("Could not generate login URL");
+    }
+});
+
 // ---------------- REQUEST TOKEN CALLBACK ----------------
 app.get("/request-token", async (req, res) => {
     try {
@@ -133,204 +170,39 @@ app.get("/request-token", async (req, res) => {
     }
 });
 
+app.get("/request-token-ankit", async (req, res) => {
+    try {
+        const { request_token } = req.query;
 
-const LOT_SIZES = {
-    APOLLOTYRE: 1700,
-    ASTRAL: 367,
-    ABFRL: 2600,
-    ALKEM: 200,
-    AARTIIND: 1000,
-    ABB: 250,
-    BEL: 5700,
-    AUBANK: 1000,
-    AXISBANK: 625,
-    BAJFINANCE: 125,
-    BALKRISIND: 300,
-    BATAINDIA: 375,
-    BERGEPAINT: 1100,
-    ASHOKLEY: 5000,
-    ABBOTINDIA: 40,
-    ABCAPITAL: 5400,
-    COFORGE: 150,
-    CUMMINSIND: 600,
-    ASIANPAINT: 200,
-    ADANIENT: 300,
-    ADANIPORTS: 800,
-    "BAJAJ-AUTO": 250,
-    DIVISLAB: 200,
-    AMBUJACEM: 1800,
-    DIXON: 200,
-    APOLLOHOSP: 125,
-    EICHERMOT: 175,
-    GODREJCP: 1000,
-    GRASIM: 475,
-    GUJGASLTD: 1250,
-    ATUL: 75,
-    HCLTECH: 700,
-    HDFCLIFE: 1100,
-    BALRAMCHIN: 1600,
-    BANDHANBNK: 2500,
-    BHARATFORG: 1000,
-    IDFC: 10000,
-    BHARTIARTL: 950,
-    BHEL: 10500,
-    BOSCHLTD: 50,
-    BPCL: 1800,
-    BRITANNIA: 200,
-    BSOFT: 2000,
-    IDFCFIRSTB: 15000,
-    CANFINHOME: 975,
-    INDHOTEL: 2000,
-    CHOLAFIN: 1250,
-    COLPAL: 350,
-    COROMANDEL: 700,
-    CROMPTON: 1800,
-    DABUR: 1250,
-    DALBHARAT: 500,
-    INDIGO: 300,
-    DEEPAKNTR: 300,
-    DELTACORP: 2800,
-    BANKBARODA: 5850,
-    DLF: 1650,
-    INFY: 400,
-    DRREDDY: 125,
-    ESCORTS: 275,
-    MARUTI: 100,
-    FEDERALBNK: 5000,
-    MCDOWELL_N: 700,
-    GAIL: 9150,
-    MFSL: 800,
-    GLENMARK: 1450,
-    GMRINFRA: 22500,
-    GNFC: 1300,
-    NATIONALUM: 7500,
-    HAL: 300,
-    HAVELLS: 500,
-    HDFCBANK: 550,
-    NAUKRI: 150,
-    HEROMOTOCO: 300,
-    HINDALCO: 1400,
-    HINDCOPPER: 5300,
-    HINDPETRO: 2700,
-    IBULHSGFIN: 5100,
-    ICICIGI: 500,
-    ICICIPRULI: 1500,
-    IEX: 3750,
-    IGL: 1375,
-    INDIACEM: 2900,
-    INDIAMART: 300,
-    INDUSTOWER: 3400,
-    INTELLECT: 1300,
-    IOC: 9750,
-    IPCALAB: 650,
-    IRCTC: 875,
-    OFSS: 200,
-    PAGEIND: 15,
-    JKCEMENT: 250,
-    PERSISTENT: 175,
-    PIIND: 250,
-    KOTAKBANK: 400,
-    SBICARD: 800,
-    SBILIFE: 750,
-    LTFH: 8924,
-    LALPATHLAB: 300,
-    LAURUSLABS: 1700,
-    LICHSGFIN: 2000,
-    LT: 300,
-    LTIM: 150,
-    LTTS: 200,
-    AUROPHARMA: 1100,
-    LUPIN: 850,
-    M_M: 700,
-    M_MFIN: 4000,
-    MARICO: 1200,
-    METROPOLIS: 400,
-    BAJAJFINSV: 500,
-    CIPLA: 650,
-    MRF: 10,
-    EXIDEIND: 3600,
-    MUTHOOTFIN: 550,
-    NAVINFLUOR: 150,
-    TCS: 175,
-    TECHM: 600,
-    TRENT: 400,
-    TVSMOTOR: 700,
-    BIOCON: 2500,
-    NESTLEIND: 40,
-    WIPRO: 1500,
-    NTPC: 3000,
-    OBEROIRLTY: 700,
-    ONGC: 3850,
-    CUB: 5000,
-    CHAMBLFERT: 1900,
-    PETRONET: 3000,
-    PIDILITIND: 250,
-    PNB: 16000,
-    GRANULES: 2000,
-    POWERGRID: 2700,
-    RAMCOCEM: 850,
-    RBLBANK: 5000,
-    HDFCAMC: 300,
-    RECLTD: 8000,
-    RELIANCE: 250,
-    SAIL: 8000,
-    SBIN: 1500,
-    SHREECEM: 25,
-    SHRIRAMFIN: 600,
-    SRF: 375,
-    SUNPHARMA: 700,
-    COALINDIA: 4200,
-    SYNGENE: 1000,
-    HINDUNILVR: 300,
-    TATACHEM: 550,
-    TATACOMM: 500,
-    TATACONSUM: 900,
-    ICICIBANK: 700,
-    TATAMOTORS: 1425,
-    TATAPOWER: 3375,
-    INDUSINDBK: 500,
-    TITAN: 375,
-    TORNTPHARM: 500,
-    UBL: 400,
-    ULTRACEMCO: 100,
-    UPL: 1300,
-    VOLTAS: 600,
-    JUBLFOOD: 1250,
-    ZEEL: 3000,
-    ZYDUSLIFE: 1800,
-    MANAPPURAM: 6000,
-    ACC: 300,
-    VEDL: 2000,
-    JINDALSTEL: 1250,
-    JSWSTEEL: 1350,
-    CONCOR: 1000,
-    NMDC: 4500,
-    POLYCAB: 300,
-    SIEMENS: 275,
-    CANBK: 2700,
-    MCX: 400,
-    MGL: 800,
-    MOTHERSON: 7100,
-    ITC: 1600,
-    PVRINOX: 407,
-    SUNTV: 1500,
-    PEL: 750,
-    PFC: 6200,
-    TATASTEEL: 5500,
-    GODREJPROP: 475,
-    IDEA: 80000,
-    MPHASIS: 275
-  };
-  
+        if (!request_token) {
+            logger.error("Request token missing");
+            return res.status(400).send("Missing request_token");
+        }
+
+        logger.info("Request Token Received");
+        global.requestTokenAnkit = request_token;
+
+        const kc = new KiteConnect({ api_key: process.env.KITE_API_KEY_ANKIT });
+        const session = await kc.generateSession(
+            request_token,
+            process.env.KITE_API_SECRET_ANKIT
+        );
+
+        global.kiteAccessTokenAnkit = session.access_token;
+        fs.writeFileSync("access_token_ankit.txt", session.access_token);
+
+        logger.info("Access token generated and stored");
+
+        res.send("Access Token Generated Successfully.");
+
+    } catch (err) {
+        logger.error("Error generating access token: " + err.message);
+        res.status(500).send("Error generating access token");
+    }
+});
 
 
-// ---------------- DETECT EXCHANGE ----------------
-function detectExchange(symbol) {
-    if (symbol.endsWith("FUT")) return "NFO";
-    if (symbol.endsWith("CE")) return "NFO";
-    if (symbol.endsWith("PE")) return "NFO";
-    return "NSE"; // normal equity
-  }
+
 
   function generateFuturesSymbol(underlyingSymbol) {
     // Get the current date using moment
@@ -384,7 +256,7 @@ function detectExchange(symbol) {
       type: "FUTURE",
       underlying: symbol,
       tradingsymbol: generateFuturesSymbol(symbol),
-      lotSize: LOT_SIZES[symbol] || 1,
+      lotSize: 1,
       exchange: "NFO",
     };
   }
@@ -430,6 +302,33 @@ async function placeOrder(symbolInfo, signal) {
       logger.error("Webhook Order Error: " + err.message);
     }
   }
+
+  async function placeOrderAnkit(symbolInfo, signal) {
+    const isFNO = symbolInfo.exchange === "NFO";
+
+  
+    try {
+      const kc = getKiteInstanceAnkit();
+      const ls = await getLotSize(kc, symbolInfo.underlying);
+      const orderParams = {
+        exchange: symbolInfo.exchange,              // NSE or NFO
+        tradingsymbol: symbolInfo.tradingsymbol,    // FUT or CE/PE or Equity
+        transaction_type: signal.toUpperCase() === "SELL" ? "SELL" : "BUY",
+        quantity: ls,               // Correct lot size
+        product: isFNO ? "NRML" : "MIS",            // FNO = NRML, Equity = MIS
+        order_type: "MARKET",
+        variety: "regular",
+    };
+      const order = await kc.placeOrder("regular", orderParams);
+  
+      console.log("✅ Order Placed:", order);
+      return order;
+    } catch (err) {
+
+      console.error("❌ Order Error:", err.message);
+      logger.error("Webhook Order Error: " + err.message);
+    }
+  }
   
   function detectSignal(text) {
     const t = text.toLowerCase();
@@ -453,19 +352,48 @@ app.post("/webhook", async (req, res) => {
         const parsed = parseSymbol(symbol);
         if (!parsed) return res.json({ error: "Invalid symbol format" });
 
-        const signal = detectSignal(req.body?.scan_name || req.body?.alert_name);
+        const signal = detectSignal(req.body?.alert_name || req.body?.scan_name);
         
-        const order = await placeOrder(parsed, signal);
-        
-        logger.info("Order Placed: " + JSON.stringify(order));
+        //const order = await placeOrder(parsed, signal);
+        const results = await Promise.allSettled([
+            placeOrder(parsed, signal),
+            placeOrderAnkit(parsed, signal)
+        ]);
 
-        res.json({
-          status: "ok",
-          parsed,
-          order,
-        });
+        const order1Result = results[0];
+        const order2Result = results[1];
 
-    } catch (err) {
+        // Prepare clean response
+        const response = {
+            status: "ok",
+            parsed,
+            order1: order1Result.status === "fulfilled"
+                ? order1Result.value
+                : { error: order1Result.reason?.message || order1Result.reason },
+
+            order2: order2Result.status === "fulfilled"
+                ? order2Result.value
+                : { error: order2Result.reason?.message || order2Result.reason }
+        };
+
+        logger.info("Order1 Result: " + JSON.stringify(response.order1));
+        logger.info("Order2 Result: " + JSON.stringify(response.order2));
+
+        res.json(response);
+
+        // logger.info("Order Placed: " + JSON.stringify(order));
+
+        // const order2 = await placeOrderAnkit(parsed, signal);
+        // logger.info("Order Placed: " + JSON.stringify(order2));
+
+        // res.json({
+        //   status: "ok",
+        //   parsed,
+        //   order,
+        //   order2
+        // });
+
+    } catch (err) {const { request_token } = req.query;
         logger.error("Webhook Order Error: " + err.message);
         res.status(500).json({ status: "error", error: err.message });
     }
@@ -473,9 +401,38 @@ app.post("/webhook", async (req, res) => {
 
 app.get("/portfolio/holdings", async (req, res) => {
     try {
-        const kc = getKiteInstance();
+        const { instance } = req.query;
+        const kc = instance == 'Ankit' ? getKiteInstanceAnkit(): getKiteInstance();
 
         const html = await getHoldingsHTML(kc);
+        res.send(html);
+
+    } catch (err) {
+        logger.error("Error generating holdings HTML", { error: err.message });
+        res.status(500).send("Error loading holdings");
+    }
+});
+
+app.get("/get-all-orders", async (req, res) => {
+    try {
+        const { instance } = req.query;
+        const kc = instance == 'Ankit' ? getKiteInstanceAnkit(): getKiteInstance();
+
+        const html = await getOrdersHTML(kc);
+        res.send(html);
+
+    } catch (err) {
+        logger.error("Error generating holdings HTML", { error: err.message });
+        res.status(500).send("Error loading holdings");
+    }
+});
+
+app.get("/get-all-positions", async (req, res) => {
+    try {
+        const { instance } = req.query;
+        const kc = instance == 'Ankit' ? getKiteInstanceAnkit(): getKiteInstance();
+
+        const html = await getPositionsHTML(kc);
         res.send(html);
 
     } catch (err) {
