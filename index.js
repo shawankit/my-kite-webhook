@@ -8,6 +8,8 @@ const { getHoldingsHTML } = require("./portfolio");
 const moment = require("moment");
 const { getOrdersHTML } = require("./orders");
 const { getPositionsHTML } = require("./positions");
+const path = require("path");
+
 
 const app = express();
 app.use(bodyParser.json());
@@ -440,6 +442,11 @@ app.get("/get-all-positions", async (req, res) => {
         res.status(500).send("Error loading holdings");
     }
 });
+
+app.get("/my-portfolio", (req, res) => {
+  res.sendFile(path.join(__dirname, "portfolio.html"));
+});
+
 
 
 // ---------------- START SERVER ----------------
